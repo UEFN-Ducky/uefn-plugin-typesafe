@@ -1,0 +1,355 @@
+{
+  "id": "typesafe",
+  "kind": "plugin",
+  "version": "1.0.0",
+  "label": "TypeSafe",
+  "description": "Jev System One judge for Automations and Pipelines: noul/choice/score tiles, ducky-cluster routing, premade workflows. Not a chat model.",
+  "min_app_version": "1.0.0",
+  "default_enabled": false,
+  "secret_keys": [
+    "typesafe_api_key"
+  ],
+  "contributes": {
+    "settings.tabs": [
+      {
+        "id": "TypeSafe",
+        "label": "TypeSafe",
+        "icon": "assets/icon.svg",
+        "ui": "sections"
+      }
+    ],
+    "settings.sections": [
+      {
+        "tab": "TypeSafe",
+        "id": "account",
+        "title": "TypeSafe / Jev",
+        "description": "Jev returns typed decisions (noul / choice / score), not chat. Paste a key from console.typesafe.ai. Powers typesafe_* tools and Automations / Pipelines tiles.",
+        "order": 10,
+        "properties": [
+          {
+            "id": "typesafe_api_key",
+            "type": "secret",
+            "label": "API key",
+            "placeholder": "TYPESAFE_…",
+            "testable": true,
+            "description": "Early-access key from https://console.typesafe.ai — stored encrypted on this device."
+          },
+          {
+            "id": "model",
+            "type": "string",
+            "default": "jev-latest",
+            "label": "Default model",
+            "description": "jev-latest (stable), jev-preview, or a pinned id such as jev-1.13.0."
+          }
+        ]
+      }
+    ],
+    "walkthrough": {
+      "id": "typesafe",
+      "title": "Set up TypeSafe",
+      "auto_start": "first_enable",
+      "settings_tab": "TypeSafe",
+      "steps": [
+        {
+          "target": "settings.tab.typesafe",
+          "title": "Paste your TypeSafe key",
+          "body": "Create a key at console.typesafe.ai, paste it here, then press Test. Jev is a judge, not a chat model — use the TypeSafe tiles on Automations and Pipelines.",
+          "advance": "next",
+          "mode": "rect"
+        },
+        {
+          "target": "settings.tab.typesafe",
+          "title": "Premade workflows",
+          "body": "After Test succeeds, open Automations or Pipelines and drop in a TypeSafe template: route a specialist ducky, gate junk, or guardrail a destructive ask.",
+          "advance": "next"
+        }
+      ]
+    },
+    "agent.tools": {
+      "category": "typesafe",
+      "intent_pattern": "\\b(jev|typesafe|system ?one|noul)\\b",
+      "plan_tools": [
+        "typesafe_status",
+        "typesafe_list_models"
+      ]
+    },
+    "automations": {
+      "nodes": [
+        {
+          "id": "typesafe.noul",
+          "label": "Jev yes/no",
+          "group": "TypeSafe",
+          "description": "Noul gate. Writes noul + gate onto the run for flow.branch.",
+          "config_fields": [
+            { "id": "instructions", "label": "Question", "type": "textarea" },
+            { "id": "criteria", "label": "Yes/no criteria JSON (optional)", "type": "textarea" },
+            { "id": "threshold", "label": "Gate threshold (0-1)", "type": "number" },
+            { "id": "state_field", "label": "Payload field", "type": "string" },
+            { "id": "model", "label": "Model (optional)", "type": "string" }
+          ]
+        },
+        {
+          "id": "typesafe.choice",
+          "label": "Jev choice",
+          "group": "TypeSafe",
+          "description": "Pick one option. Writes choice + ducky so pipeline.agent can seat that profile.",
+          "config_fields": [
+            { "id": "instructions", "label": "Question", "type": "textarea" },
+            { "id": "criteria", "label": "Options JSON map", "type": "textarea" },
+            { "id": "state_field", "label": "Payload field", "type": "string" },
+            { "id": "model", "label": "Model (optional)", "type": "string" }
+          ]
+        },
+        {
+          "id": "typesafe.score",
+          "label": "Jev score",
+          "group": "TypeSafe",
+          "description": "Score on a rubric. Writes score + gate.",
+          "config_fields": [
+            { "id": "instructions", "label": "Question", "type": "textarea" },
+            { "id": "criteria", "label": "Levels JSON array (2-10)", "type": "textarea" },
+            { "id": "threshold", "label": "Gate threshold", "type": "number" },
+            { "id": "state_field", "label": "Payload field", "type": "string" },
+            { "id": "model", "label": "Model (optional)", "type": "string" }
+          ]
+        },
+        {
+          "id": "typesafe.decide",
+          "label": "Jev decide (batch)",
+          "group": "TypeSafe",
+          "description": "Many typed questions in one Jev call. Writes answers plus flattened first noul/choice/score.",
+          "config_fields": [
+            { "id": "questions", "label": "Questions JSON", "type": "textarea" },
+            { "id": "state_field", "label": "Payload field", "type": "string" },
+            { "id": "threshold", "label": "Gate threshold", "type": "number" },
+            { "id": "model", "label": "Model (optional)", "type": "string" }
+          ]
+        },
+        {
+          "id": "typesafe.route_ducky",
+          "label": "Jev route ducky",
+          "group": "TypeSafe",
+          "description": "Pick which installed ducky should run. Writes ducky for pipeline.agent.",
+          "config_fields": [
+            { "id": "instructions", "label": "Question (optional)", "type": "textarea" },
+            { "id": "criteria", "label": "Override profiles JSON (optional)", "type": "textarea" },
+            { "id": "state_field", "label": "Payload field", "type": "string" },
+            { "id": "model", "label": "Model (optional)", "type": "string" }
+          ]
+        }
+      ],
+      "templates": [
+        {
+          "id": "typesafe-route-specialist",
+          "label": "Jev routes a specialist ducky",
+          "icon": "🦆",
+          "description": "Chat ask → Jev picks an installed ducky → that specialist runs → finish.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["pipeline"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.chat", "x": 40, "y": 80, "config": {}, "label": "Chat" },
+              { "id": "r", "type": "typesafe.route_ducky", "x": 280, "y": 80, "config": { "state_field": "prompt" }, "label": "Route ducky" },
+              { "id": "a", "type": "pipeline.agent", "x": 520, "y": 80, "config": { "title": "Specialist" }, "label": "Agent" },
+              { "id": "f", "type": "pipeline.finish", "x": 760, "y": 80, "config": { "message": "Specialist finished." }, "label": "Finish" }
+            ],
+            "edges": [
+              { "source": "s", "target": "r", "kind": "main" },
+              { "source": "r", "target": "a", "kind": "main" },
+              { "source": "a", "target": "f", "kind": "main" }
+            ]
+          }
+        },
+        {
+          "id": "typesafe-gate-then-act",
+          "label": "Jev gates then acts",
+          "icon": "🚪",
+          "description": "Skip junk. If Jev says the ask is actionable, route a specialist; else finish.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["pipeline"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.chat", "x": 40, "y": 80, "config": {}, "label": "Chat" },
+              {
+                "id": "g",
+                "type": "typesafe.noul",
+                "x": 260,
+                "y": 80,
+                "config": {
+                  "instructions": "Is this an actionable UEFN / island / editor request (not small talk)?",
+                  "threshold": 0.7,
+                  "state_field": "prompt"
+                },
+                "label": "Actionable?"
+              },
+              { "id": "b", "type": "flow.branch", "x": 500, "y": 80, "config": { "mode": "data", "field": "gate" }, "label": "Branch" },
+              { "id": "r", "type": "typesafe.route_ducky", "x": 740, "y": 20, "config": { "state_field": "prompt" }, "label": "Route ducky" },
+              { "id": "a", "type": "pipeline.agent", "x": 980, "y": 20, "config": { "title": "Specialist" }, "label": "Agent" },
+              { "id": "ok", "type": "pipeline.finish", "x": 1220, "y": 20, "config": { "message": "Done." }, "label": "Finish" },
+              { "id": "skip", "type": "pipeline.finish", "x": 740, "y": 160, "config": { "message": "Jev gated this as not actionable." }, "label": "Skip" }
+            ],
+            "edges": [
+              { "source": "s", "target": "g", "kind": "main" },
+              { "source": "g", "target": "b", "kind": "main" },
+              { "source": "b", "target": "r", "kind": "true" },
+              { "source": "b", "target": "skip", "kind": "false" },
+              { "source": "r", "target": "a", "kind": "main" },
+              { "source": "a", "target": "ok", "kind": "main" }
+            ]
+          }
+        },
+        {
+          "id": "typesafe-verse-vs-art",
+          "label": "Jev: Verse vs art vs world",
+          "icon": "🔀",
+          "description": "Classify the ask as verse, leveldesign, or materials, then seat that ducky.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["pipeline"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.chat", "x": 40, "y": 80, "config": {}, "label": "Chat" },
+              {
+                "id": "c",
+                "type": "typesafe.choice",
+                "x": 280,
+                "y": 80,
+                "config": {
+                  "instructions": "Which specialist should handle `prompt`?",
+                  "criteria": {
+                    "verse": "Verse, compile errors, devices, wiring.",
+                    "leveldesign": "Layout, props, world building.",
+                    "materials": "Materials and lookdev."
+                  },
+                  "state_field": "prompt"
+                },
+                "label": "Verse / art / world"
+              },
+              { "id": "a", "type": "pipeline.agent", "x": 560, "y": 80, "config": { "title": "Specialist" }, "label": "Agent" },
+              { "id": "f", "type": "pipeline.finish", "x": 800, "y": 80, "config": { "message": "Routed specialist finished." }, "label": "Finish" }
+            ],
+            "edges": [
+              { "source": "s", "target": "c", "kind": "main" },
+              { "source": "c", "target": "a", "kind": "main" },
+              { "source": "a", "target": "f", "kind": "main" }
+            ]
+          }
+        },
+        {
+          "id": "typesafe-guardrail",
+          "label": "Jev guardrail",
+          "icon": "🛡️",
+          "description": "Refuse destructive asks (delete / wipe / force-push). Otherwise route a specialist.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["pipeline"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.chat", "x": 40, "y": 80, "config": {}, "label": "Chat" },
+              {
+                "id": "g",
+                "type": "typesafe.noul",
+                "x": 260,
+                "y": 80,
+                "config": {
+                  "instructions": "Is this asking to delete, wipe, force-push, or otherwise destroy project data?",
+                  "threshold": 0.7,
+                  "state_field": "prompt"
+                },
+                "label": "Destructive?"
+              },
+              { "id": "b", "type": "flow.branch", "x": 500, "y": 80, "config": { "mode": "data", "field": "gate" }, "label": "Branch" },
+              { "id": "no", "type": "pipeline.finish", "x": 740, "y": 20, "config": { "message": "Jev blocked a destructive ask." }, "label": "Refuse" },
+              { "id": "r", "type": "typesafe.route_ducky", "x": 740, "y": 160, "config": { "state_field": "prompt" }, "label": "Route ducky" },
+              { "id": "a", "type": "pipeline.agent", "x": 980, "y": 160, "config": { "title": "Specialist" }, "label": "Agent" },
+              { "id": "ok", "type": "pipeline.finish", "x": 1220, "y": 160, "config": { "message": "Done." }, "label": "Finish" }
+            ],
+            "edges": [
+              { "source": "s", "target": "g", "kind": "main" },
+              { "source": "g", "target": "b", "kind": "main" },
+              { "source": "b", "target": "no", "kind": "true" },
+              { "source": "b", "target": "r", "kind": "false" },
+              { "source": "r", "target": "a", "kind": "main" },
+              { "source": "a", "target": "ok", "kind": "main" }
+            ]
+          }
+        },
+        {
+          "id": "typesafe-score-then-continue",
+          "label": "Jev score then continue",
+          "icon": "📊",
+          "description": "Score playtest / compile severity. Continue to a specialist only if it clears the gate.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["pipeline"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.chat", "x": 40, "y": 80, "config": {}, "label": "Chat" },
+              {
+                "id": "sc",
+                "type": "typesafe.score",
+                "x": 280,
+                "y": 80,
+                "config": {
+                  "instructions": "How severe is the problem in `prompt`?",
+                  "criteria": [
+                    "No real problem, noise or question only.",
+                    "Warning or mild issue, can wait.",
+                    "Blocking compile, crash, or playtest failure."
+                  ],
+                  "threshold": 1.0,
+                  "state_field": "prompt"
+                },
+                "label": "Severity"
+              },
+              { "id": "b", "type": "flow.branch", "x": 540, "y": 80, "config": { "mode": "data", "field": "gate" }, "label": "Branch" },
+              { "id": "r", "type": "typesafe.route_ducky", "x": 780, "y": 20, "config": { "state_field": "prompt" }, "label": "Route ducky" },
+              { "id": "a", "type": "pipeline.agent", "x": 1020, "y": 20, "config": { "title": "Specialist" }, "label": "Agent" },
+              { "id": "ok", "type": "pipeline.finish", "x": 1260, "y": 20, "config": { "message": "Done." }, "label": "Finish" },
+              { "id": "skip", "type": "pipeline.finish", "x": 780, "y": 160, "config": { "message": "Severity below gate." }, "label": "Skip" }
+            ],
+            "edges": [
+              { "source": "s", "target": "sc", "kind": "main" },
+              { "source": "sc", "target": "b", "kind": "main" },
+              { "source": "b", "target": "r", "kind": "true" },
+              { "source": "b", "target": "skip", "kind": "false" },
+              { "source": "r", "target": "a", "kind": "main" },
+              { "source": "a", "target": "ok", "kind": "main" }
+            ]
+          }
+        },
+        {
+          "id": "typesafe-manual-gate",
+          "label": "Jev manual gate",
+          "icon": "🧪",
+          "description": "Manual Test run: Jev noul then flow.branch. Use the Test payload prompt. No ducky seat.",
+          "requires_plugins": ["typesafe"],
+          "systems": ["automation"],
+          "graph": {
+            "nodes": [
+              { "id": "s", "type": "start.manual", "x": 40, "y": 80, "config": {}, "label": "Manual" },
+              {
+                "id": "g",
+                "type": "typesafe.noul",
+                "x": 280,
+                "y": 80,
+                "config": {
+                  "instructions": "Is this an actionable request?",
+                  "threshold": 0.7,
+                  "state_field": "prompt"
+                },
+                "label": "Actionable?"
+              },
+              { "id": "b", "type": "flow.branch", "x": 520, "y": 80, "config": { "mode": "data", "field": "gate" }, "label": "Branch" }
+            ],
+            "edges": [
+              { "source": "s", "target": "g", "kind": "main" },
+              { "source": "g", "target": "b", "kind": "main" }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "backend": {
+    "entry": "backend",
+    "register": "register"
+  }
+}
