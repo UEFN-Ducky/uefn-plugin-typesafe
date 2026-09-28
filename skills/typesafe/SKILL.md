@@ -18,7 +18,7 @@ Jev is TypeSafe's System One model. It returns **typed decisions** (noul / choic
 
 **Do not** pick Jev as the chat model. Chat stays Claude / GPT / Codex. Call `typesafe_*` tools or drop TypeSafe tiles on Automations / Pipelines.
 
-**Do not** curl `api.typesafe.ai` or read a `.env`. The key lives in **Settings → TypeSafe** (encrypted; use **Test**).
+**Do not** curl `api.typesafe.ai` or read a `.env`. The key lives in **Settings → LLMs → TypeSafe** (encrypted; use **Test**).
 
 ## Tools
 

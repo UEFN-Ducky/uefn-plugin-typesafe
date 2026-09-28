@@ -107,7 +107,19 @@ def test_install_contract() -> None:
 
     data = json.loads((ROOT / "plugin.json").read_text(encoding="utf-8"))
     assert data["id"] == "typesafe"
-    assert "typesafe_api_key" in data["secret_keys"]
+    assert data["secret_keys"] == ["typesafe"]
+    providers = data["contributes"]["llm.providers"]
+    assert providers == [
+        {
+            "id": "typesafe",
+            "label": "TypeSafe",
+            "kind": "secret",
+            "secret_key": "typesafe",
+            "order": 90,
+            "chat": False,
+        }
+    ]
+    assert "settings.tabs" not in data["contributes"]
     skill = (ROOT / "skills" / "typesafe" / "SKILL.md").read_text(encoding="utf-8")
     assert skill.startswith("---")
     assert "name: typesafe" in skill.split("---", 2)[1]

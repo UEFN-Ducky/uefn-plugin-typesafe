@@ -9,7 +9,9 @@ import urllib.request
 from typing import Any
 
 PLUGIN_ID = "typesafe"
-SECRET_KEY = "typesafe_api_key"
+SECRET_KEY = "typesafe"
+# Previous Settings tab stored the key under this name.
+_LEGACY_SECRET_KEY = "typesafe_api_key"
 BASE_URL = "https://api.typesafe.ai"
 DEFAULT_MODEL = "jev-latest"
 DEFAULT_THRESHOLD = 0.7
@@ -29,9 +31,19 @@ def api_key(explicit: str = "") -> str:
     if (explicit or "").strip():
         return explicit.strip()
     try:
-        from backend.agent.secrets import get_key
+        from backend.agent.secrets import get_key, set_key
 
-        return (get_key(SECRET_KEY) or "").strip()
+        current = (get_key(SECRET_KEY) or "").strip()
+        if current:
+            return current
+        legacy = (get_key(_LEGACY_SECRET_KEY) or "").strip()
+        if not legacy:
+            return ""
+        try:
+            set_key(SECRET_KEY, legacy)
+        except Exception:
+            pass
+        return legacy
     except Exception:
         return ""
 
@@ -221,7 +233,7 @@ def run_decide(
 ) -> dict[str, Any]:
     key = api_key(api_key_value)
     if not key:
-        return {"ok": False, "error": "Paste a TypeSafe API key in Settings → TypeSafe."}
+        return {"ok": False, "error": "Paste a TypeSafe API key in Settings → LLMs → TypeSafe."}
     try:
         raw = system_one(key, state, questions, model=model)
         out = flatten_response(raw, threshold=threshold)

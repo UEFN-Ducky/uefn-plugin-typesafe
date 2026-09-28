@@ -15,7 +15,7 @@ py scripts/build_zip.py
 
 ## Secrets
 
-Never commit tokens. The app stores `typesafe_api_key` locally (DPAPI).
+Never commit tokens. The app stores `typesafe` locally (DPAPI) under Settings → LLMs → TypeSafe.
 Get a key at https://console.typesafe.ai (early access).
 
 ## License

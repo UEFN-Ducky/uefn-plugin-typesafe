@@ -1,39 +1,33 @@
 {
   "id": "typesafe",
   "kind": "plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "label": "TypeSafe",
-  "description": "Jev System One judge for Automations and Pipelines: noul/choice/score tiles, ducky-cluster routing, premade workflows. Not a chat model.",
+  "description": "Jev System One judge for Automations and Pipelines: noul/choice/score tiles, ducky-cluster routing, premade workflows. Not a chat model. The key lives under Settings → LLMs → TypeSafe.",
   "min_app_version": "1.0.0",
   "default_enabled": false,
   "secret_keys": [
-    "typesafe_api_key"
+    "typesafe"
   ],
   "contributes": {
-    "settings.tabs": [
+    "llm.providers": [
       {
-        "id": "TypeSafe",
+        "id": "typesafe",
         "label": "TypeSafe",
-        "icon": "assets/icon.svg",
-        "ui": "sections"
+        "kind": "secret",
+        "secret_key": "typesafe",
+        "order": 90,
+        "chat": false
       }
     ],
     "settings.sections": [
       {
-        "tab": "TypeSafe",
+        "tab": "LLMs",
         "id": "account",
-        "title": "TypeSafe / Jev",
-        "description": "Jev returns typed decisions (noul / choice / score), not chat. Paste a key from console.typesafe.ai. Powers typesafe_* tools and Automations / Pipelines tiles.",
+        "title": "Jev model",
+        "description": "Jev returns typed decisions (noul / choice / score), not chat. The API key is the TypeSafe row above.",
         "order": 10,
         "properties": [
-          {
-            "id": "typesafe_api_key",
-            "type": "secret",
-            "label": "API key",
-            "placeholder": "TYPESAFE_…",
-            "testable": true,
-            "description": "Early-access key from https://console.typesafe.ai — stored encrypted on this device."
-          },
           {
             "id": "model",
             "type": "string",
@@ -48,20 +42,21 @@
       "id": "typesafe",
       "title": "Set up TypeSafe",
       "auto_start": "first_enable",
-      "settings_tab": "TypeSafe",
+      "settings_tab": "LLMs",
       "steps": [
         {
-          "target": "settings.tab.typesafe",
+          "target": "settings.llms.provider.typesafe",
           "title": "Paste your TypeSafe key",
-          "body": "Create a key at console.typesafe.ai, paste it here, then press Test. Jev is a judge, not a chat model — use the TypeSafe tiles on Automations and Pipelines.",
-          "advance": "next",
+          "body": "Open the TypeSafe row under Providers. Create a key at console.typesafe.ai, paste it, then press Test. Jev is a judge, not a chat model — use the TypeSafe tiles on Automations and Pipelines.",
+          "advance": "require_click",
           "mode": "rect"
         },
         {
-          "target": "settings.tab.typesafe",
-          "title": "Premade workflows",
-          "body": "After Test succeeds, open Automations or Pipelines and drop in a TypeSafe template: route a specialist ducky, gate junk, or guardrail a destructive ask.",
-          "advance": "next"
+          "target": "settings.llms.provider.key",
+          "title": "Test the key",
+          "body": "Paste the key and press Test. After it succeeds, Automations and Pipelines can use the TypeSafe templates.",
+          "advance": "next",
+          "mode": "rect"
         }
       ]
     },

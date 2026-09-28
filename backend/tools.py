@@ -24,9 +24,6 @@ def _connection_row() -> dict[str, Any]:
 def register_tools(api: Any) -> None:
     if hasattr(api, "register_secret_test"):
         api.register_secret_test(client.SECRET_KEY, client.test_api_key)
-    connect = getattr(api, "connection", None)
-    if callable(connect):
-        connect(_connection_row, label="TypeSafe", program="typesafe")
 
     @api.tool(name="typesafe_status", intent=client.INTENT, listener=False)
     def typesafe_status() -> str:
@@ -48,7 +45,7 @@ def register_tools(api: Any) -> None:
         """List TypeSafe model aliases (GET /v1/models)."""
         key = client.api_key()
         if not key:
-            return _dumps({"ok": False, "error": "Paste a TypeSafe API key in Settings → TypeSafe."})
+            return _dumps({"ok": False, "error": "Paste a TypeSafe API key in Settings → LLMs → TypeSafe."})
         try:
             return _dumps({"ok": True, **client.list_models(key)})
         except client.TypeSafeError as exc:
