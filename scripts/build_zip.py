@@ -30,7 +30,7 @@ def _prune_superseded_zips(keep: pathlib.Path | None = None) -> None:
             pass
 
 
-SKIP_NAMES = {".git", ".github", "scripts", "deploy", ".gitignore", "README.md", "__pycache__"}
+SKIP_NAMES = {".git", ".github", ".pytest_cache", "scripts", "deploy", ".gitignore", "README.md", "__pycache__"}
 SKIP_SUFFIX = {".pyc", ".pyo", ".zip", ".ducky-plugin"}
 SKIP_FILES = {"test_client.py", "test_automations.py"}
 
