@@ -1,7 +1,7 @@
 {
   "id": "typesafe",
   "kind": "plugin",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "label": "TypeSafe",
   "description": "Jev System One judge for Automations and Pipelines: noul/choice/score tiles, ducky-cluster routing, premade workflows. Not a chat model. The key lives under Settings → LLMs → TypeSafe.",
   "min_app_version": "1.0.0",
