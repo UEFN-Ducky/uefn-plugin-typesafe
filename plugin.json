@@ -6,6 +6,7 @@
   "description": "Jev System One judge for Automations and Pipelines: noul/choice/score tiles, ducky-cluster routing, premade workflows. Not a chat model. The key lives under Settings → LLMs → TypeSafe.",
   "min_app_version": "1.0.0",
   "default_enabled": false,
+  "data_sharing": false,
   "secret_keys": [
     "typesafe"
   ],
